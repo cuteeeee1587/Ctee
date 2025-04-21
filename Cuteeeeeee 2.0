@@ -1,0 +1,202 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Cute Hub",
+   LoadingTitle = "Loaaaaaaaaaaaaaaaaaadingggg",
+   LoadingSubtitle = "by Cuteeeee",
+   Theme = "AmberGlow",
+
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "Cuteeeee",
+      FileName = "Cute Hub"
+   },
+
+   KeySystem = false,
+   KeySettings = {
+      Title = "Untitled",
+      Subtitle = "Key System",
+      Note = "Just a test",
+      FileName = "Key",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"Hello"}
+   }
+})
+
+-- Player and environment setup
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+local playerChar = workspace:WaitForChild(player.Name)
+local playerHRP = playerChar:WaitForChild("HumanoidRootPart")
+local enemiesFolder = workspace:WaitForChild("Enemys")
+local goldsFolder = workspace:WaitForChild("Golds")
+
+-- Toggle flags
+local autoClickEnabled = false
+local teleportEnabled = false
+local collectGoldEnabled = false
+local collectPumpkinEnabled = false
+
+-- Internal state
+local clickTimer = 0
+local transferTimer = 0
+local pumpkinTimer = 0
+local clickInterval = 0.05
+local transferInterval = 0.2
+local pumpkinInterval = 5  -- Interval for auto-collecting pumpkins (in seconds)
+
+-- Function to get the next target
+local function getNextTarget()
+    local aliveEnemies = {}
+    for _, enemy in ipairs(enemiesFolder:GetChildren()) do
+        local hrp = enemy:FindFirstChild("HumanoidRootPart")
+        local humanoid = enemy:FindFirstChildOfClass("Humanoid")
+        if hrp and humanoid and humanoid.Health > 0 then
+            table.insert(aliveEnemies, hrp)
+        end
+    end
+    if #aliveEnemies > 0 then
+        return aliveEnemies[math.random(1, #aliveEnemies)]
+    end
+    return nil
+end
+
+-- Function to find the Halloween Pumpkin anywhere in the workspace
+local function findHalloweenPumpkin()
+    for _, object in pairs(workspace:GetDescendants()) do
+        if object.Name == "HalloweenPumpkin" then
+            return object
+        end
+    end
+    return nil
+end
+
+-- Teleport function to the pumpkin
+local function teleportToPumpkin(pumpkin)
+    if pumpkin then
+        player.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(pumpkin.Position)
+    end
+end
+
+-- Simulate a single "E" key press
+local function simulateEKeyPress()
+    local inputObject = Instance.new("InputObject")
+    inputObject.UserInputType = Enum.UserInputType.Keyboard
+    inputObject.KeyCode = Enum.KeyCode.E
+    UserInputService.InputBegan:Fire(inputObject)
+end
+
+-- Function to teleport and simulate "E" key press
+local function teleportAndPressE()
+    local pumpkin = findHalloweenPumpkin()
+    
+    if pumpkin then
+        teleportToPumpkin(pumpkin)  -- Teleport to the pumpkin
+        simulateEKeyPress()         -- Simulate "E" key press
+    else
+        warn("HalloweenPumpkin not found!")
+    end
+end
+
+-- Main loop for handling all features
+RunService.Heartbeat:Connect(function(dt)
+    -- Handle pumpkin collection
+    if collectPumpkinEnabled then
+        pumpkinTimer = pumpkinTimer + dt
+        if pumpkinTimer >= pumpkinInterval then
+            teleportAndPressE()  -- Teleport and collect the pumpkin
+            pumpkinTimer = 0    -- Reset the timer
+        end
+    end
+
+    -- Handle teleporting to enemies
+    if teleportEnabled then
+        transferTimer += dt
+        if transferTimer >= transferInterval then
+            local targetHRP = getNextTarget()
+            if targetHRP then
+                playerHRP.CFrame = CFrame.new(targetHRP.Position + Vector3.new(5, 0, 0))
+            end
+            transferTimer = 0
+        end
+    end
+
+    -- Handle auto-clicking
+    if autoClickEnabled then
+        clickTimer += dt
+        if clickTimer >= clickInterval then
+            -- Simulate mouse click
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+            clickTimer = 0
+        end
+    end
+
+    -- Handle gold collection
+    if collectGoldEnabled then
+        for _, gold in ipairs(goldsFolder:GetChildren()) do
+            if gold:IsA("BasePart") and gold.Name == "OutGold" then
+                gold.CFrame = playerHRP.CFrame * CFrame.new(0, 0, -2)
+            end
+        end
+    end
+end)
+
+-- Create the Auto tab
+local AutofarmTab = Window:CreateTab("Auto", "crosshair")
+
+-- Auto Collect Pumpkin toggle
+AutofarmTab:CreateToggle({
+    Name = "Auto Collect Pumpkin",
+    CurrentValue = false,
+    Flag = "AutoCollectPumpkinToggle",
+    Callback = function(state)
+        collectPumpkinEnabled = state
+        print("Auto Collect Pumpkin: " .. (state and "ON" or "OFF"))
+    end,
+})
+
+-- Auto Click toggle
+AutofarmTab:CreateToggle({
+    Name = "Auto Click",
+    CurrentValue = false,
+    Flag = "AutoClickToggle",
+    Callback = function(state)
+        autoClickEnabled = state
+        print("Auto Click: " .. (state and "ON" or "OFF"))
+    end,
+})
+
+-- Auto Teleport toggle
+AutofarmTab:CreateToggle({
+    Name = "Auto Teleport to Enemy",
+    CurrentValue = false,
+    Flag = "AutoTeleportToggle",
+    Callback = function(state)
+        teleportEnabled = state
+        print("Auto Teleport: " .. (state and "ON" or "OFF"))
+    end,
+})
+
+-- Auto Collect Gold toggle
+AutofarmTab:CreateToggle({
+    Name = "Auto Collect Gold",
+    CurrentValue = false,
+    Flag = "AutoCollectGoldToggle",
+    Callback = function(state)
+        collectGoldEnabled = state
+        print("Auto Collect Gold: " .. (state and "ON" or "OFF"))
+    end,
+})
+
+-- Notify the user that the hub has loaded
+Rayfield:Notify({
+   Title = "Shessshhh",
+   Content = "Cute Hub Loaded",
+   Duration = 6.5,
+   Image = 4483362458,
+})
