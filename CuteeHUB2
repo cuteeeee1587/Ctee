@@ -194,3 +194,23 @@ do
 		end
 	}
 end
+
+
+autoClick = false
+
+T1:Toggle{
+    Name = "Auto Click",
+    StartingState = false,
+    Description = "Automatically fires PlayerClickAttack remote",
+    Callback = function(state)
+        autoClick = state
+        if autoClick then
+            spawn(function()
+                while autoClick do
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("PlayerClickAttack"):FireServer()
+                    wait(0.01)
+                end
+            end)
+        end
+    end
+}
