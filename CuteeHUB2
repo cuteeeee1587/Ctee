@@ -20,11 +20,14 @@ local T1 = wndw:Tab{
 }
 
 
+autoFarm = false
+
 T1:Toggle{
     Name = "Auto Farm",
     StartingState = false,
     Description = nil,
     Callback = function(value)
+        autoFarm = value
         local RunService = game:GetService("RunService")
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
         local EnemiesFolder = workspace:WaitForChild("Enemys")
@@ -33,7 +36,7 @@ T1:Toggle{
         local PlayerClickAttackSkillRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAttack")
 
         task.spawn(function()
-            while value do
+            while autoFarm do
                 for _, enemyModel in ipairs(EnemiesFolder:GetChildren()) do
                     local enemyGuid = enemyModel:GetAttribute("EnemyGuid")
                     local enemyPos = enemyModel:FindFirstChild("HumanoidRootPart") and enemyModel.HumanoidRootPart.Position
@@ -57,6 +60,7 @@ T1:Toggle{
         end)
     end
 }
+
 
 local fuseLoopRunning = false
 
