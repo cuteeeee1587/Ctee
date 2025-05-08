@@ -155,3 +155,42 @@ T1:Toggle{
         end
     end
 }
+--- 
+T1:Toggle{
+	Name = "Unlimited Diamond",
+	StartingState = false,
+	Description = "YOU SHOULD BE IN MAP 2",
+	Callback = function()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/cuteeeee1587/Cute/refs/heads/main/DiamondKey"))()
+	end
+}
+----
+
+do
+	local autoSpinRunning = false
+
+	T1:Toggle{
+		Name = "Auto Spin Diamond Key",
+		StartingState = false,
+		Description = "Automatically rerolls the halo using diamond keys.",
+		Callback = function(state)
+			autoSpinRunning = state
+			if state then
+				task.spawn(function()
+					while autoSpinRunning do
+						local args = {
+							[1] = 3
+						}
+
+						game:GetService("ReplicatedStorage")
+							:WaitForChild("Remotes")
+							:WaitForChild("RerollHalo")
+							:InvokeServer(unpack(args))
+
+						task.wait(0.1)
+					end
+				end)
+			end
+		end
+	}
+end
